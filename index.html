@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code du jour</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #1a1a2e;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #16213e;
+            padding: 40px 60px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        #code {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #00d4ff;
+            letter-spacing: 10px;
+            margin: 20px 0;
+        }
+
+        #heure {
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Code du jour</h1>
+        <div id="code">------</div>
+        <div id="heure"></div>
+    </div>
+
+    <script>
+        function genererCode() {
+            var now = new Date();
+
+            var year = now.getFullYear() % 100;
+            var month = now.getMonth() + 1;
+            var day = now.getDate();
+            var hour = now.getHours();
+
+            var total = (year * month * 100 + month * day + day * hour * 1001 + hour * year) * 17 ^ 677;
+
+            var code = String(total).slice(-6).padStart(6, '0');
+
+            document.getElementById('code').textContent = code;
+            document.getElementById('heure').textContent = 
+                'Généré le ' + now.toLocaleDateString('fr-FR') + 
+                ' à ' + now.toLocaleTimeString('fr-FR');
+        }
+
+        // Génère le code au chargement
+        genererCode();
+
+        // Met à jour chaque minute
+        setInterval(genererCode, 60000);
+    </script>
+
+</body>
+</html>
