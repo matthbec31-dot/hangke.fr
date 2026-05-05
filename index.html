@@ -42,143 +42,130 @@
             font-size: 0.9rem;
         }
 
-        /* LOGIN */
-        #login-container {
-            text-align: center;
-            background-color: #16213e;
-            padding: 40px 60px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
-            width: 300px;
-        }
-
-        #login-container h1 {
-            color: #ffffff;
-            margin-bottom: 25px;
-            font-size: 1.5rem;
-        }
-
-        #login-container input {
-            width: 100%;
+        /* Connexion */
+        #page-connexion input {
+            display: block;
+            width: 250px;
+            margin: 10px auto;
             padding: 10px;
-            margin: 8px 0;
             border-radius: 8px;
-            border: 1px solid #00d4ff;
-            background-color: #1a1a2e;
-            color: #ffffff;
+            border: none;
             font-size: 1rem;
-            box-sizing: border-box;
         }
 
-        #login-container button {
+        #page-connexion button {
             margin-top: 15px;
-            width: 100%;
-            padding: 10px;
+            padding: 10px 30px;
             background-color: #00d4ff;
-            color: #1a1a2e;
             border: none;
             border-radius: 8px;
             font-size: 1rem;
-            font-weight: bold;
             cursor: pointer;
+            font-weight: bold;
         }
 
-        #login-container button:hover {
-            background-color: #00b8d9;
+        #page-connexion button:hover {
+            background-color: #00aacc;
         }
 
         #erreur {
-            color: #ff4d4d;
+            color: #ff4444;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        #btn-deconnexion {
+            margin-top: 20px;
+            padding: 8px 20px;
+            background-color: #ff4444;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        #btn-deconnexion:hover {
+            background-color: #cc0000;
+        }
+
+        #connecte-info {
+            color: #888;
             font-size: 0.85rem;
             margin-top: 10px;
         }
 
-        #code-container {
-            display: none;
-        }
-
-        #bienvenue {
-            color: #888;
-            font-size: 0.85rem;
-            margin-bottom: 10px;
-        }
-
-        #deconnexion {
-            margin-top: 20px;
-            padding: 8px 20px;
-            background-color: transparent;
-            color: #ff4d4d;
-            border: 1px solid #ff4d4d;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-
-        #deconnexion:hover {
-            background-color: #ff4d4d;
-            color: #fff;
-        }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- FORMULAIRE DE CONNEXION -->
-    <div id="login-container">
-        <h1>🔐 Connexion</h1>
+    <!-- Page de connexion -->
+    <div class="container" id="page-connexion">
+        <h1>Connexion</h1>
         <input type="text" id="identifiant" placeholder="Identifiant" />
         <input type="password" id="motdepasse" placeholder="Mot de passe" />
         <button onclick="seConnecter()">Se connecter</button>
         <div id="erreur"></div>
     </div>
 
-    <!-- CODE APRÈS CONNEXION -->
-    <div id="code-container" class="container">
-        <div id="bienvenue"></div>
+    <!-- Page du code -->
+    <div class="container hidden" id="page-code">
         <h1>Code actif</h1>
         <div id="code">------</div>
         <div id="heure"></div>
-        <button id="deconnexion" onclick="seDeconnecter()">Se déconnecter</button>
+        <div id="connecte-info"></div>
+        <button id="btn-deconnexion" onclick="seDeconnecter()">Se déconnecter</button>
     </div>
 
     <script>
-        const identifiants = [
-            "matthieu.becuwe",
-            "antoine.vasseur",
-            "bastien.moriceau",
-            "benoit.willaumez",
-            "cedric.bersch",
-            "clément.chrzaszcz",
-            "denis.gillet",
-            "emilien.burgeat",
-            "ludovic.bober",
-            "mehdi.bilem",
-            "nicolas.trioux",
-            "rayane.boudjemaa",
-            "thibault.brisard",
-            "yohan.loquet",
-            "zakaria.savadogo"
-        ];
+        // Vérifie si déjà connecté
+        const sessionUser = sessionStorage.getItem('utilisateur');
+        if (sessionUser) {
+            afficherCode(sessionUser);
+        }
 
-        const motDePasseUnique = "AESC2026.hangke";
+        async function seConnecter() {
+            const identifiant = document.getElementById('identifiant').value.trim();
+            const password = document.getElementById('motdepasse').value;
 
-        function seConnecter() {
-            const identifiant = document.getElementById('identifiant').value.toLowerCase().trim();
-            const motdepasse = document.getElementById('motdepasse').value;
+            if (!identifiant || !password) {
+                document.getElementById('erreur').textContent = 'Veuillez remplir tous les champs.';
+                return;
+            }
 
-            if (identifiants.includes(identifiant) && motdepasse === motDePasseUnique) {
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('code-container').style.display = 'block';
-                document.getElementById('bienvenue').textContent = 'Connecté en tant que ' + identifiant;
-                genererCode();
-                setInterval(genererCode, 60000);
-            } else {
-                document.getElementById('erreur').textContent = '❌ Identifiant ou mot de passe incorrect.';
+            try {
+                const reponse = await fetch('/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifiant, password })
+                });
+
+                const data = await reponse.json();
+
+                if (data.success) {
+                    sessionStorage.setItem('utilisateur', identifiant);
+                    afficherCode(identifiant);
+                } else {
+                    document.getElementById('erreur').textContent = 'Identifiant ou mot de passe incorrect.';
+                }
+            } catch (e) {
+                document.getElementById('erreur').textContent = 'Erreur de connexion au serveur.';
             }
         }
 
+        function afficherCode(utilisateur) {
+            document.getElementById('page-connexion').classList.add('hidden');
+            document.getElementById('page-code').classList.remove('hidden');
+            document.getElementById('connecte-info').textContent = 'Connecté en tant que : ' + utilisateur;
+            genererCode();
+            setInterval(genererCode, 60000);
+        }
+
         function seDeconnecter() {
-            document.getElementById('login-container').style.display = 'flex';
-            document.getElementById('code-container').style.display = 'none';
+            sessionStorage.removeItem('utilisateur');
+            document.getElementById('page-connexion').classList.remove('hidden');
+            document.getElementById('page-code').classList.add('hidden');
             document.getElementById('identifiant').value = '';
             document.getElementById('motdepasse').value = '';
             document.getElementById('erreur').textContent = '';
@@ -198,7 +185,6 @@
                 ' à ' + now.toLocaleTimeString('fr-FR');
         }
 
-        // Permettre la touche Entrée pour se connecter
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') seConnecter();
         });
