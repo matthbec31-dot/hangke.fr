@@ -121,21 +121,19 @@
         }
 
         function mettreAJourCode() {
-            const now = new Date();
-            const secondes = now.getSeconds();
-            const minutes = now.getMinutes();
-            const periode = Math.floor((minutes * 60 + secondes) / 30);
-            const graine = now.toISOString().slice(0, 10).replace(/-/g, '') + periode;
-            let hash = 0;
-            for (let i = 0; i < graine.length; i++) {
-                hash = ((hash << 5) - hash) + graine.charCodeAt(i);
-                hash |= 0;
-            }
-            const code = Math.abs(hash) % 900000 + 100000;
-            document.getElementById('code').textContent = code;
-            document.getElementById('heure').textContent =
-                `Mis à jour à ${now.toLocaleTimeString('fr-FR')}`;
-        }
+    const now = new Date();
+    const year = now.getFullYear() % 100;
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    const hour = now.getHours();
+
+    const total = (year * month * 100 + month * day + day * hour * 1001 + hour * year) * 17 ^ 677;
+    const code = String(total).slice(-6).padStart(6, '0');
+
+    document.getElementById('code').textContent = code;
+    document.getElementById('heure').textContent =
+        `Mis à jour à ${now.toLocaleTimeString('fr-FR')}`;
+}
 
         function seDeconnecter() {
             clearInterval(intervalCode);
