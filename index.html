@@ -73,7 +73,7 @@
             }
 
             try {
-                const response = await fetch(`${URL_SCRIPT}?identifiant=${encodeURIComponent(identifiant)}&password=${encodeURIComponent(motdepasse)}`);
+                const response = await fetch(`${URL_SCRIPT}?identifiant=${encodeURIComponent(identifiant)}&password=${encodeURIComponent(motdepasse)}&action=connexion`);
                 const data = await response.json();
 
                 if (data.success) {
