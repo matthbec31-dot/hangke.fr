@@ -41,40 +41,167 @@
             color: #888;
             font-size: 0.9rem;
         }
+
+        /* LOGIN */
+        #login-container {
+            text-align: center;
+            background-color: #16213e;
+            padding: 40px 60px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
+            width: 300px;
+        }
+
+        #login-container h1 {
+            color: #ffffff;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+        }
+
+        #login-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #00d4ff;
+            background-color: #1a1a2e;
+            color: #ffffff;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        #login-container button {
+            margin-top: 15px;
+            width: 100%;
+            padding: 10px;
+            background-color: #00d4ff;
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #login-container button:hover {
+            background-color: #00b8d9;
+        }
+
+        #erreur {
+            color: #ff4d4d;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        #code-container {
+            display: none;
+        }
+
+        #bienvenue {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        #deconnexion {
+            margin-top: 20px;
+            padding: 8px 20px;
+            background-color: transparent;
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        #deconnexion:hover {
+            background-color: #ff4d4d;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <!-- FORMULAIRE DE CONNEXION -->
+    <div id="login-container">
+        <h1>🔐 Connexion</h1>
+        <input type="text" id="identifiant" placeholder="Identifiant" />
+        <input type="password" id="motdepasse" placeholder="Mot de passe" />
+        <button onclick="seConnecter()">Se connecter</button>
+        <div id="erreur"></div>
+    </div>
+
+    <!-- CODE APRÈS CONNEXION -->
+    <div id="code-container" class="container">
+        <div id="bienvenue"></div>
         <h1>Code actif</h1>
         <div id="code">------</div>
         <div id="heure"></div>
+        <button id="deconnexion" onclick="seDeconnecter()">Se déconnecter</button>
     </div>
 
     <script>
+        const identifiants = [
+            "matthieu.becuwe",
+            "antoine.vasseur",
+            "bastien.moriceau",
+            "benoit.willaumez",
+            "cedric.bersch",
+            "clément.chrzaszcz",
+            "denis.gillet",
+            "emilien.burgeat",
+            "ludovic.bober",
+            "mehdi.bilem",
+            "nicolas.trioux",
+            "rayane.boudjemaa",
+            "thibault.brisard",
+            "yohan.loquet",
+            "zakaria.savadogo"
+        ];
+
+        const motDePasseUnique = "AESC2026.hangke";
+
+        function seConnecter() {
+            const identifiant = document.getElementById('identifiant').value.toLowerCase().trim();
+            const motdepasse = document.getElementById('motdepasse').value;
+
+            if (identifiants.includes(identifiant) && motdepasse === motDePasseUnique) {
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('code-container').style.display = 'block';
+                document.getElementById('bienvenue').textContent = 'Connecté en tant que ' + identifiant;
+                genererCode();
+                setInterval(genererCode, 60000);
+            } else {
+                document.getElementById('erreur').textContent = '❌ Identifiant ou mot de passe incorrect.';
+            }
+        }
+
+        function seDeconnecter() {
+            document.getElementById('login-container').style.display = 'flex';
+            document.getElementById('code-container').style.display = 'none';
+            document.getElementById('identifiant').value = '';
+            document.getElementById('motdepasse').value = '';
+            document.getElementById('erreur').textContent = '';
+        }
+
         function genererCode() {
             var now = new Date();
-
             var year = now.getFullYear() % 100;
             var month = now.getMonth() + 1;
             var day = now.getDate();
             var hour = now.getHours();
-
             var total = (year * month * 100 + month * day + day * hour * 1001 + hour * year) * 17 ^ 677;
-
             var code = String(total).slice(-6).padStart(6, '0');
-
             document.getElementById('code').textContent = code;
-            document.getElementById('heure').textContent = 
-                'Généré le ' + now.toLocaleDateString('fr-FR') + 
+            document.getElementById('heure').textContent =
+                'Généré le ' + now.toLocaleDateString('fr-FR') +
                 ' à ' + now.toLocaleTimeString('fr-FR');
         }
 
-        // Génère le code au chargement
-        genererCode();
-
-        // Met à jour chaque minute
-        setInterval(genererCode, 60000);
+        // Permettre la touche Entrée pour se connecter
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') seConnecter();
+        });
     </script>
 
 </body>
