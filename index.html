@@ -42,7 +42,6 @@
             font-size: 0.9rem;
         }
 
-        /* Connexion */
         #page-connexion input {
             display: block;
             width: 250px;
@@ -119,6 +118,8 @@
     </div>
 
     <script>
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwF1JJDNCi9kWhFdQfEoVYf8URVfBG4yi48hQDosazty8iXVN-kntZBs66rpWvuoAlVxA/exec';
+
         // Vérifie si déjà connecté
         const sessionUser = sessionStorage.getItem('utilisateur');
         if (sessionUser) {
@@ -134,13 +135,14 @@
                 return;
             }
 
-            try {
-                const reponse = await fetch('/api/auth', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifiant, password })
-                });
+            document.getElementById('erreur').textContent = 'Vérification...';
 
+            try {
+                const url = GOOGLE_SCRIPT_URL
+                    + '?identifiant=' + encodeURIComponent(identifiant.toLowerCase())
+                    + '&password=' + encodeURIComponent(password);
+
+                const reponse = await fetch(url);
                 const data = await reponse.json();
 
                 if (data.success) {
