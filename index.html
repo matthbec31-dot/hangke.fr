@@ -3,151 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code actif</title>
+    <title>Hangke - Code d'accès</title>
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #1a1a2e;
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            text-align: center;
-            background-color: #16213e;
-            padding: 40px 60px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
-        }
-
-        h1 {
-            color: #ffffff;
-            margin-bottom: 10px;
-            font-size: 1.5rem;
-        }
-
-        #code {
-            font-size: 4rem;
-            font-weight: bold;
-            color: #00d4ff;
-            letter-spacing: 10px;
-            margin: 20px 0;
-        }
-
-        #heure {
-            color: #888;
-            font-size: 0.9rem;
-        }
-
-        #page-connexion input {
-            display: block;
-            width: 250px;
-            margin: 10px auto;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            font-size: 1rem;
-        }
-
-        #page-connexion button {
-            margin-top: 15px;
-            padding: 10px 30px;
-            background-color: #00d4ff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        #page-connexion button:hover {
-            background-color: #00aacc;
-        }
-
-        #erreur {
-            color: #ff4444;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-
-        #btn-deconnexion {
-            margin-top: 20px;
-            padding: 8px 20px;
-            background-color: #ff4444;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-
-        #btn-deconnexion:hover {
-            background-color: #cc0000;
-        }
-
-        #connecte-info {
-            color: #888;
-            font-size: 0.85rem;
-            margin-top: 10px;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { background: #16213e; padding: 40px; border-radius: 15px; width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { margin-bottom: 25px; color: #e94560; font-size: 1.8em; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; background: #0f3460; color: white; font-size: 1em; }
+        input::placeholder { color: #aaa; }
+        button { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 8px; background: #e94560; color: white; font-size: 1em; cursor: pointer; }
+        button:hover { background: #c73652; }
+        #erreur { color: #ff6b6b; margin-top: 10px; font-size: 0.9em; }
         .hidden { display: none; }
+        #code { font-size: 3em; font-weight: bold; color: #e94560; letter-spacing: 5px; margin: 20px 0; }
+        #heure { color: #aaa; font-size: 0.9em; margin-bottom: 20px; }
+        #bienvenue { color: #4ecca3; margin-bottom: 10px; font-size: 1.1em; }
+        #timer { color: #aaa; font-size: 0.85em; margin-top: 10px; }
+        #deconnexion { background: #444; margin-top: 20px; }
+        #deconnexion:hover { background: #333; }
     </style>
 </head>
 <body>
 
-    <!-- Page de connexion -->
-    <div class="container" id="page-connexion">
-        <h1>Connexion</h1>
-        <input type="text" id="identifiant" placeholder="Identifiant" />
+    <!-- PAGE CONNEXION -->
+    <div id="page-connexion" class="container">
+        <h1>Hangke</h1>
+        <input type="text" id="identifiant" placeholder="Identifiant (prenom.nom)" />
         <input type="password" id="motdepasse" placeholder="Mot de passe" />
         <button onclick="seConnecter()">Se connecter</button>
         <div id="erreur"></div>
     </div>
 
-    <!-- Page du code -->
-    <div class="container hidden" id="page-code">
+    <!-- PAGE CODE -->
+    <div id="page-code" class="container hidden">
+        <div id="bienvenue"></div>
         <h1>Code actif</h1>
         <div id="code">------</div>
         <div id="heure"></div>
-        <div id="connecte-info"></div>
-        <button id="btn-deconnexion" onclick="seDeconnecter()">Se déconnecter</button>
+        <div id="timer"></div>
+        <button id="deconnexion" onclick="seDeconnecter()">Se déconnecter</button>
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwF1JJDNCi9kWhFdQfEoVYf8URVfBG4yi48hQDosazty8iXVN-kntZBs66rpWvuoAlVxA/exec';
+        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwF1JJDNCi9kWhFdQfEoVYf8URVfBG4yi48hQDosazty8iXVN-kntZBs66rpWvuoAlVxA/exec";
+        const DUREE_SESSION = 5 * 60 * 1000; // 5 minutes
+        let intervalCode;
+        let intervalTimer;
+        let intervalSession;
 
-        // Vérifie si déjà connecté
-        const sessionUser = sessionStorage.getItem('utilisateur');
-        if (sessionUser) {
-            afficherCode(sessionUser);
-        }
+        // Vérifier si déjà connecté
+        window.onload = function() {
+            const utilisateur = sessionStorage.getItem('utilisateur');
+            const heureConnexion = sessionStorage.getItem('heureConnexion');
+            if (utilisateur && heureConnexion && Date.now() - heureConnexion < DUREE_SESSION) {
+                afficherPageCode(utilisateur);
+            } else {
+                sessionStorage.clear();
+            }
+        };
 
         async function seConnecter() {
-            const identifiant = document.getElementById('identifiant').value.trim();
-            const password = document.getElementById('motdepasse').value;
+            const identifiant = document.getElementById('identifiant').value.trim().toLowerCase();
+            const motdepasse = document.getElementById('motdepasse').value;
+            document.getElementById('erreur').textContent = '';
 
-            if (!identifiant || !password) {
+            if (!identifiant || !motdepasse) {
                 document.getElementById('erreur').textContent = 'Veuillez remplir tous les champs.';
                 return;
             }
 
-            document.getElementById('erreur').textContent = 'Vérification...';
-
             try {
-                const url = GOOGLE_SCRIPT_URL
-                    + '?identifiant=' + encodeURIComponent(identifiant.toLowerCase())
-                    + '&password=' + encodeURIComponent(password);
-
-                const reponse = await fetch(url);
-                const data = await reponse.json();
+                const response = await fetch(`${URL_SCRIPT}?identifiant=${encodeURIComponent(identifiant)}&password=${encodeURIComponent(motdepasse)}`);
+                const data = await response.json();
 
                 if (data.success) {
                     sessionStorage.setItem('utilisateur', identifiant);
-                    afficherCode(identifiant);
+                    sessionStorage.setItem('heureConnexion', Date.now());
+                    afficherPageCode(identifiant);
                 } else {
                     document.getElementById('erreur').textContent = 'Identifiant ou mot de passe incorrect.';
                 }
@@ -156,41 +88,66 @@
             }
         }
 
-        function afficherCode(utilisateur) {
+        function afficherPageCode(identifiant) {
             document.getElementById('page-connexion').classList.add('hidden');
             document.getElementById('page-code').classList.remove('hidden');
-            document.getElementById('connecte-info').textContent = 'Connecté en tant que : ' + utilisateur;
-            genererCode();
-            setInterval(genererCode, 60000);
+            document.getElementById('bienvenue').textContent = `Bienvenue, ${identifiant} 👋`;
+
+            mettreAJourCode();
+            intervalCode = setInterval(mettreAJourCode, 30000);
+
+            // Timer déconnexion
+            intervalTimer = setInterval(mettreAJourTimer, 1000);
+
+            // Vérification session expirée
+            intervalSession = setInterval(function() {
+                const heureConnexion = sessionStorage.getItem('heureConnexion');
+                if (!heureConnexion || Date.now() - heureConnexion > DUREE_SESSION) {
+                    alert("Session expirée, veuillez vous reconnecter.");
+                    seDeconnecter();
+                }
+            }, 10000);
+        }
+
+        function mettreAJourTimer() {
+            const heureConnexion = sessionStorage.getItem('heureConnexion');
+            if (!heureConnexion) return;
+            const restant = DUREE_SESSION - (Date.now() - heureConnexion);
+            if (restant <= 0) return;
+            const minutes = Math.floor(restant / 60000);
+            const secondes = Math.floor((restant % 60000) / 1000);
+            document.getElementById('timer').textContent =
+                `⏱ Déconnexion dans ${minutes}:${secondes.toString().padStart(2, '0')}`;
+        }
+
+        function mettreAJourCode() {
+            const now = new Date();
+            const secondes = now.getSeconds();
+            const minutes = now.getMinutes();
+            const periode = Math.floor((minutes * 60 + secondes) / 30);
+            const graine = now.toISOString().slice(0, 10).replace(/-/g, '') + periode;
+            let hash = 0;
+            for (let i = 0; i < graine.length; i++) {
+                hash = ((hash << 5) - hash) + graine.charCodeAt(i);
+                hash |= 0;
+            }
+            const code = Math.abs(hash) % 900000 + 100000;
+            document.getElementById('code').textContent = code;
+            document.getElementById('heure').textContent =
+                `Mis à jour à ${now.toLocaleTimeString('fr-FR')}`;
         }
 
         function seDeconnecter() {
-            sessionStorage.removeItem('utilisateur');
+            clearInterval(intervalCode);
+            clearInterval(intervalTimer);
+            clearInterval(intervalSession);
+            sessionStorage.clear();
             document.getElementById('page-connexion').classList.remove('hidden');
             document.getElementById('page-code').classList.add('hidden');
             document.getElementById('identifiant').value = '';
             document.getElementById('motdepasse').value = '';
             document.getElementById('erreur').textContent = '';
         }
-
-        function genererCode() {
-            var now = new Date();
-            var year = now.getFullYear() % 100;
-            var month = now.getMonth() + 1;
-            var day = now.getDate();
-            var hour = now.getHours();
-            var total = (year * month * 100 + month * day + day * hour * 1001 + hour * year) * 17 ^ 677;
-            var code = String(total).slice(-6).padStart(6, '0');
-            document.getElementById('code').textContent = code;
-            document.getElementById('heure').textContent =
-                'Généré le ' + now.toLocaleDateString('fr-FR') +
-                ' à ' + now.toLocaleTimeString('fr-FR');
-        }
-
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') seConnecter();
-        });
     </script>
-
 </body>
 </html>
